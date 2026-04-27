@@ -32,5 +32,7 @@
 ## Notes
 
 - Items marked incomplete require spec updates before `/speckit.clarify` or `/speckit.plan`.
-- All 3 clarifications resolved on 2026-04-27: (1) language scope = mixed Chinese + English (multilingual embedding required); (2) interface form = HTTP API only; (3) ingest formats = plain text + Markdown + source-code files (specific language list to be fixed in plan.md).
+- 3 clarifications resolved during `/speckit.specify` on 2026-04-27: language scope = mixed Chinese + English; interface form = HTTP API; ingest formats = plain text + Markdown + source code.
+- 1 additional clarification resolved during `/speckit.clarify` on 2026-04-27: embedding backend = local multilingual model with swappable provider contract; full multi-backend support is a pure-additive future change (Constitution V satisfied).
+- 6 engineering assumptions codified during `/speckit.clarify` (per user direction to apply standard patterns without consultation): API versioning field, credential scan at ingest gate, corpus size target ≤50k chunks, concurrent ingest/retrieval semantics, single-command index wipe, evaluation set composition rules. FR-009 extended to cover credential rejection alongside cold-data rejection.
 - Spec ready for `/speckit.plan`.

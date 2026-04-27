@@ -5,6 +5,12 @@
 **Status**: Draft
 **Input**: User description: "RAG Nano 第一版（书库管理员层）。本仓库 rag-nano 只实现书库管理员——一个独立、与任何 agent 解耦的 RAG 服务。第一版交付 ingest（数据摄取）+ retrieval（知识检索）+ evaluation（效果评测）三条主链路，暴露稳定的 agent‑neutral 检索接口供外部 orchestrator 调用。"
 
+## Clarifications
+
+### Session 2026-04-27
+
+- Q: Where does v1 produce embeddings — hosted API, local model, or both? → A: Local multilingual model only in v1 (e.g. BGE-m3 / multilingual-e5; concrete model fixed in plan.md). The embedding component sits behind a stable provider contract (Protocol/ABC + factory pattern); a hosted-API backend or any additional production implementation can be added later as a pure-additive new class — no changes required in retrieval, ingest, or evaluation consumers. Same swappable pattern applies uniformly to all six core components (embedding, vector store, retriever, metadata extractor, reranker, structured store).
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - External agent retrieves explainable knowledge (Priority: P1)
@@ -85,7 +91,7 @@ A developer changes any part of the retrieval stack (chunking, embedding, retrie
 **Ingest pipeline**
 
 - **FR-008**: System MUST accept ingest only for the following high-value data types: documents, FAQs, SOPs, historical case write-ups, issue summaries, wiki pages, configuration notes, structured knowledge cards, code summaries, log summaries.
-- **FR-009**: System MUST reject ingest items that fall under cold-data categories (raw logs, full raw source dumps, raw execution traces, oversized raw conversations, duplicate raw documents) and report a per-item reason in the run report.
+- **FR-009**: System MUST reject ingest items at the gate when they either (a) fall under cold-data categories (raw logs, full raw source dumps, raw execution traces, oversized raw conversations, duplicate raw documents), or (b) match high-confidence credential patterns (e.g. AWS access keys, JWT tokens, GitHub personal access tokens, generic `password=` / `api_key=` / `secret=` assignments). Each rejected item MUST be reported with a per-item reason in the run report.
 - **FR-010**: System MUST split accepted items into retrievable chunks, attach metadata (source, data type, category, ingest timestamp), and persist them to vector storage and structured storage.
 - **FR-011**: System MUST tag every chunk with a stable identifier traceable back to a single source so that any chunk surfaced by retrieval can be traced to its origin.
 - **FR-012**: System MUST handle re-ingest of the same source by either skipping it or replacing its previous chunks; duplicate insertion of the same source MUST NOT occur.
@@ -134,10 +140,17 @@ A developer changes any part of the retrieval stack (chunking, embedding, retrie
 
 - The orchestrator and the short-term memory layer are owned by other projects. This repository delivers only the librarian; the orchestrator's "query memory first, dispatch to librarian on miss" policy is out of scope.
 - Document language scope for v1 is mixed Chinese + English. The embedding stack MUST support both languages in a single model (multilingual embedding); using a monolingual model tuned for only one side is out of scope.
+- Embedding backend for v1 is a single local multilingual model loaded via a sentence-transformers-compatible loader (concrete model fixed in plan.md). The embedding component is defined behind a stable provider contract; adding hosted-API or any additional production backend later is a pure-additive new implementation of the same contract — no changes required in retrieval, ingest, or evaluation consumers. The same swappable contract pattern applies uniformly to vector store, retriever, metadata extractor, reranker, and structured store.
 - The retrieval interface form for v1 is an HTTP API served by a local server (single deliverable). An in-process SDK form is NOT built in v1; downstream consumers that prefer in-process access wrap the HTTP client themselves.
+- HTTP retrieval responses carry an `api_version` field. v1 emits `"1"`. Backwards-incompatible response shape changes increment this value; backwards-compatible additions do not.
 - Ingest input formats for v1 are: plain text, Markdown, and source-code files (a defined list of languages such as .py / .ts / .js / .go / .java / .rs — exact set to be finalized in plan.md). HTML, PDF, office documents, and binary attachments are out of scope and rejected at the ingest gate.
+- Ingest applies a regex-based credential scan at the gate using canonical patterns (AWS access keys, JWT tokens, GitHub personal access tokens, generic `password=` / `api_key=` / `secret=` assignments, etc.). Items matching high-confidence patterns are rejected with a per-item reason (per FR-009). PII scrubbing (names, emails, national IDs) is NOT in v1 and remains an external pre-processing concern per Constitution IV (cold-data prohibition).
 - Operator scale for v1 is single-developer, local workstation, single-tenant. No authentication, authorization, or quota system is in scope.
+- v1 corpus is sized for up to ~5,000 source documents and ~50,000 chunks on a single workstation. Beyond this scale, a different vector store backend is expected to be swapped in via the contract from Constitution V; no v1 consumer changes are required for the swap.
 - Latency target for v1 is "interactive for a developer" — sub-2-second per retrieval call on the reference local setup. Higher-throughput or production-grade SLOs are out of scope.
+- Retrieval and ingest may run concurrently. Each ingest source's chunks are committed atomically: until commit, retrieval sees the pre-ingest state for that source. Retrieval is never blocked by an ongoing ingest run.
 - Re-indexing strategy for v1 is full-source replace on re-ingest. Incremental delta indexing is out of scope.
+- Operator can wipe the entire index (vector store + structured store) via a single CLI subcommand; the operation is destructive and prompts for confirmation. No partial-wipe by data type or source is in v1 — use re-ingest per FR-012 instead.
 - The evaluation set lives in version control alongside the code. Treating eval cases as production data with their own lifecycle is out of scope for v1.
+- Evaluation set composition rules for v1: (a) at least 20 cases per FR-018; (b) the set MUST collectively span every v1 high-value data type that appears in the corpus; (c) the set MUST include both Chinese and English queries. Curation is the eval owner's responsibility; the harness enforces only structural requirements (case count + metadata presence), not topical coverage.
 - The librarian is invoked synchronously by callers in v1. Async/streaming retrieval modes are out of scope.
