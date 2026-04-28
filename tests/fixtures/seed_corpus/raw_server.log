@@ -1,0 +1,4 @@
+2026-04-27T10:00:01Z INFO server started pid=1234
+2026-04-27T10:00:02Z WARN connection pool at 80%
+2026-04-27T10:00:05Z ERROR timeout on /api/v1/retrieve
+2026-04-27T10:00:06Z INFO retry succeeded
