@@ -8,9 +8,12 @@ import numpy as np
 import pytest
 
 from rag_nano.components.embedding import MockEmbeddingProvider
+from rag_nano.components.retriever import CosineTopKRetriever
+from rag_nano.components.reranker import IdentityReranker
 from rag_nano.components.structured_store import InMemoryStructuredStore
 from rag_nano.components.vector_store import InMemoryVectorStore
 from rag_nano.config import Settings
+from rag_nano.core.retrieval import Components
 from rag_nano.types import DataType, KnowledgeChunk, KnowledgeSource
 
 
@@ -94,3 +97,30 @@ def _ulid_from_text(text: str) -> str:
     """Deterministic pseudo-ULID for test fixtures."""
     h = hashlib.sha256(text.encode()).hexdigest()[:26]
     return f"01{h}"
+
+
+@pytest.fixture
+def app_fixture(mock_settings: Settings, seed_index_fixture) -> "FastAPI":
+    """FastAPI app wired with seeded in-memory stores."""
+    from fastapi import FastAPI
+
+    from rag_nano.api.app import create_app
+
+    structured, vector = seed_index_fixture
+    app = create_app(mock_settings)
+    app.state.components = Components(
+        embedding_provider=MockEmbeddingProvider(dim=4),
+        vector_store=vector,
+        retriever=CosineTopKRetriever(),
+        reranker=IdentityReranker(),
+        structured_store=structured,
+    )
+    return app
+
+
+@pytest.fixture
+def app_empty_fixture(mock_settings: Settings) -> "FastAPI":
+    """FastAPI app with empty stores."""
+    from rag_nano.api.app import create_app
+
+    return create_app(mock_settings)
