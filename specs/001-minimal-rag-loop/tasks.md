@@ -28,12 +28,12 @@ Single Python project; package at repo root (`rag_nano/`); tests at `tests/`; ev
 
 **Purpose**: Project initialization and toolchain.
 
-- [ ] T001 Create the source-tree skeleton from plan.md: `rag_nano/{api,core,components,ingest,eval,cli}/`, `tests/{contract,integration,unit,fixtures}/`, `eval/`, `scripts/`, `docs/`. Each Python directory gets an empty `__init__.py`.
-- [ ] T002 Author `pyproject.toml` (PEP 621) declaring Python 3.11+, runtime deps (`fastapi`, `uvicorn[standard]`, `pydantic>=2`, `pydantic-settings`, `sentence-transformers`, `numpy`, `typer`, `pyyaml`, `python-ulid`), dev deps (`pytest`, `pytest-asyncio`, `pytest-mock`, `httpx`, `ruff`, `pyright`), and the `rag-nano` console script entry point. Include `[tool.uv]`, `[tool.ruff]`, `[tool.pyright]` blocks and `[tool.pytest.ini_options]` (asyncio_mode = "auto", testpaths = ["tests"]).
-- [ ] T003 [P] Create `.env.example` with every variable from quickstart.md's config table commented + default values.
-- [ ] T004 [P] Create `scripts/download_models.sh` (executable; uses `uv run python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('intfloat/multilingual-e5-base')"` to warm the cache) and an empty `scripts/seed_dev_corpus.sh` placeholder (contents added in T038).
-- [ ] T005 [P] Create `README.md` with one paragraph + a link to `specs/001-minimal-rag-loop/quickstart.md`. Do not duplicate quickstart content.
-- [ ] T006 Run `uv sync` to materialize `uv.lock`. **Acceptance**: `uv run python -c "import fastapi, sentence_transformers, numpy, typer, pydantic_settings"` exits 0.
+- [X] T001 Create the source-tree skeleton from plan.md: `rag_nano/{api,core,components,ingest,eval,cli}/`, `tests/{contract,integration,unit,fixtures}/`, `eval/`, `scripts/`, `docs/`. Each Python directory gets an empty `__init__.py`.
+- [X] T002 Author `pyproject.toml` (PEP 621) declaring Python 3.11+, runtime deps (`fastapi`, `uvicorn[standard]`, `pydantic>=2`, `pydantic-settings`, `sentence-transformers`, `numpy`, `typer`, `pyyaml`, `python-ulid`), dev deps (`pytest`, `pytest-asyncio`, `pytest-mock`, `httpx`, `ruff`, `pyright`), and the `rag-nano` console script entry point. Include `[tool.uv]`, `[tool.ruff]`, `[tool.pyright]` blocks and `[tool.pytest.ini_options]` (asyncio_mode = "auto", testpaths = ["tests"]).
+- [X] T003 [P] Create `.env.example` with every variable from quickstart.md's config table commented + default values.
+- [X] T004 [P] Create `scripts/download_models.sh` (executable; uses `uv run python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('intfloat/multilingual-e5-base')"` to warm the cache) and an empty `scripts/seed_dev_corpus.sh` placeholder (contents added in T038).
+- [X] T005 [P] Create `README.md` with one paragraph + a link to `specs/001-minimal-rag-loop/quickstart.md`. Do not duplicate quickstart content.
+- [X] T006 Run `uv sync` to materialize `uv.lock`. **Acceptance**: `uv run python -c "import fastapi, sentence_transformers, numpy, typer, pydantic_settings"` exits 0.
 
 ---
 
