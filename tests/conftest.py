@@ -124,3 +124,23 @@ def app_empty_fixture(mock_settings: Settings) -> "FastAPI":
     from rag_nano.api.app import create_app
 
     return create_app(mock_settings)
+
+
+@pytest.fixture
+def seed_index_via_ingest_fixture(mock_settings: Settings) -> tuple[InMemoryStructuredStore, InMemoryVectorStore]:
+    """Seed fixture using the real ingest pipeline on the seed corpus.
+
+    Returns (structured_store, vector_store) populated via rag_nano.core.ingest.ingest().
+    """
+    from rag_nano.core.ingest import ingest
+
+    structured = InMemoryStructuredStore()
+    vector = InMemoryVectorStore()
+
+    corpus_root = Path(__file__).parent / "fixtures" / "seed_corpus"
+    if not corpus_root.exists():
+        pytest.skip("seed_corpus not found")
+
+    paths = [p for p in corpus_root.iterdir() if p.is_file()]
+    ingest(paths, structured, vector, mock_settings)
+    return structured, vector
