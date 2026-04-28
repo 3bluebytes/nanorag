@@ -1,0 +1,158 @@
+# Seed eval cases for rag-nano v1.
+# These are placeholder-but-structurally-valid cases.
+# Replace with real curated cases as the corpus grows.
+#
+# Composition rules (enforced by rag_nano.eval.runner.validate_composition):
+#   - >= 20 cases total
+#   - >= 1 case per data_type that exists in the corpus
+#   - >= 1 zh case AND >= 1 en case
+# Schema: see specs/001-minimal-rag-loop/data-model.md (EvaluationCase).
+
+cases:
+  # --- faq (5: 3 zh, 2 en) ---
+  - case_id: faq-zh-001
+    query: BGE-m3 prefix 怎么配置
+    query_lang: zh
+    expected_data_type: faq
+    mode: substring
+    expected_substring: "passage"
+
+  - case_id: faq-zh-002
+    query: 嵌入模型的查询前缀
+    query_lang: zh
+    expected_data_type: faq
+    mode: substring
+    expected_substring: "前缀"
+
+  - case_id: faq-zh-003
+    query: query 前缀和 passage 前缀的区别
+    query_lang: zh
+    expected_data_type: faq
+    mode: substring
+    expected_substring: "query:"
+
+  - case_id: faq-en-001
+    query: How do I deploy a hotfix safely
+    query_lang: en
+    expected_data_type: faq
+    mode: substring
+    expected_substring: "feature branch"
+
+  - case_id: faq-en-002
+    query: smoke test before merge
+    query_lang: en
+    expected_data_type: faq
+    mode: substring
+    expected_substring: "smoke test"
+
+  # --- sop (5: 3 zh, 2 en) ---
+  - case_id: sop-zh-001
+    query: 生产热修复流程
+    query_lang: zh
+    expected_data_type: sop
+    mode: substring
+    expected_substring: "灰度发布"
+
+  - case_id: sop-zh-002
+    query: 代码审查需要几个 senior
+    query_lang: zh
+    expected_data_type: sop
+    mode: substring
+    expected_substring: "senior"
+
+  - case_id: sop-zh-003
+    query: incident timeline 怎么记录
+    query_lang: zh
+    expected_data_type: sop
+    mode: substring
+    expected_substring: "incident timeline"
+
+  - case_id: sop-en-001
+    query: hotfix process production
+    query_lang: en
+    expected_data_type: sop
+    mode: substring
+    expected_substring: "staging"
+
+  - case_id: sop-en-002
+    query: gradual rollout 5 percent
+    query_lang: en
+    expected_data_type: sop
+    mode: substring
+    expected_substring: "5%"
+
+  # --- wiki (5: 2 zh, 3 en) ---
+  - case_id: wiki-en-001
+    query: RAG librarian decoupled architecture
+    query_lang: en
+    expected_data_type: wiki
+    mode: substring
+    expected_substring: "decoupled"
+
+  - case_id: wiki-en-002
+    query: stable HTTP contract for retrieval
+    query_lang: en
+    expected_data_type: wiki
+    mode: substring
+    expected_substring: "HTTP contract"
+
+  - case_id: wiki-en-003
+    query: CLI for ingest pipeline
+    query_lang: en
+    expected_data_type: wiki
+    mode: substring
+    expected_substring: "CLI"
+
+  - case_id: wiki-zh-001
+    query: 系统架构概览
+    query_lang: zh
+    expected_data_type: wiki
+    mode: substring
+    expected_substring: "librarian"
+
+  - case_id: wiki-zh-002
+    query: agent 与 librarian 解耦
+    query_lang: zh
+    expected_data_type: wiki
+    mode: substring
+    expected_substring: "decoupled"
+
+  # --- code_summary (5: 2 zh, 3 en) ---
+  - case_id: code-en-001
+    query: chunk_markdown function signature
+    query_lang: en
+    expected_data_type: code_summary
+    mode: substring
+    expected_substring: "chunk_markdown"
+
+  - case_id: code-en-002
+    query: split section by heading
+    query_lang: en
+    expected_data_type: code_summary
+    mode: substring
+    expected_substring: "split_by_heading"
+
+  - case_id: code-en-003
+    query: chunking utilities for ingest
+    query_lang: en
+    expected_data_type: code_summary
+    mode: substring
+    expected_substring: "Chunking utilities"
+
+  - case_id: code-zh-001
+    query: markdown 切分工具
+    query_lang: zh
+    expected_data_type: code_summary
+    mode: substring
+    expected_substring: "chunk_markdown"
+
+  # Intentionally a chunk_ids case with placeholder ULID that will not hit;
+  # exercises FR-021 (broken case is flagged, run continues).
+  - case_id: code-zh-002
+    query: 章节切分实现
+    query_lang: zh
+    expected_data_type: code_summary
+    mode: chunk_ids
+    expected_chunk_ids:
+      - "01PLACEHOLDER000000000000000000"
+    notes: placeholder chunk_ids — replace once corpus stabilises

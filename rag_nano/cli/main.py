@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import shutil
 from pathlib import Path
 
@@ -8,10 +9,14 @@ import uvicorn
 
 from rag_nano.api.app import create_app
 from rag_nano.components.embedding import get_embedding_provider
+from rag_nano.components.reranker import get_reranker
+from rag_nano.components.retriever import get_retriever
 from rag_nano.components.structured_store import get_structured_store
 from rag_nano.components.vector_store import get_vector_store
 from rag_nano.config import Settings
 from rag_nano.core.ingest import ingest as _ingest_core
+from rag_nano.core.retrieval import Components
+from rag_nano.eval.runner import run_eval
 from rag_nano.types import DataType
 
 app = typer.Typer(help="rag-nano — minimum closed-loop librarian")
@@ -94,6 +99,59 @@ def stats() -> None:
             typer.echo(f"  {dtype}: {count}")
     if s["last_ingest_at"]:
         typer.echo(f"Last ingest: {s['last_ingest_at']}")
+
+
+@app.command()
+def eval(
+    cases: Path = typer.Option(
+        Path("eval/cases.yaml"), "--cases", help="Path to cases.yaml"
+    ),
+    history: Path = typer.Option(
+        Path("eval/history.jsonl"), "--history", help="Path to history.jsonl"
+    ),
+    k: int = typer.Option(5, "--k"),
+    out: str = typer.Option("-", "--out", help="Path to write JSON record; '-' = stdout"),
+    fail_on_regression: bool = typer.Option(False, "--fail-on-regression"),
+) -> None:
+    settings = Settings.from_env()
+    components = Components(
+        embedding_provider=get_embedding_provider(settings),
+        vector_store=get_vector_store(settings),
+        retriever=get_retriever(settings),
+        reranker=get_reranker(settings),
+        structured_store=get_structured_store(settings),
+    )
+    run = run_eval(cases, history, components, settings, k=k)
+
+    typer.echo(f"recall@{run.k} = {run.metric_recall_at_k:.4f}")
+    typer.echo(f"hit_rate    = {run.metric_hit_rate:.4f}")
+    typer.echo(f"cases       = {run.case_count}")
+    if run.delta_vs_previous is not None:
+        typer.echo(
+            f"delta vs previous: recall {run.delta_vs_previous['recall_delta']:+.4f}, "
+            f"hit_rate {run.delta_vs_previous['hit_rate_delta']:+.4f}"
+        )
+    else:
+        typer.echo("delta vs previous: (first run)")
+
+    record = {
+        "run_id": run.run_id,
+        "metric_recall_at_k": run.metric_recall_at_k,
+        "metric_hit_rate": run.metric_hit_rate,
+        "case_count": run.case_count,
+        "k": run.k,
+        "delta_vs_previous": run.delta_vs_previous,
+    }
+    record_json = json.dumps(record, ensure_ascii=False)
+    if out == "-":
+        typer.echo(record_json)
+    else:
+        Path(out).parent.mkdir(parents=True, exist_ok=True)
+        Path(out).write_text(record_json + "\n", encoding="utf-8")
+
+    if fail_on_regression and run.delta_vs_previous is not None:
+        if run.delta_vs_previous["recall_delta"] < 0:
+            raise typer.Exit(code=1)
 
 
 if __name__ == "__main__":
