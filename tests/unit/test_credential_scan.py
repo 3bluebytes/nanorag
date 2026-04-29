@@ -1,5 +1,12 @@
 from rag_nano.ingest.credential_scan import scan
 
+# Build the test prefixes via concatenation so GitHub's push-protection scanner
+# does not flag the Stripe / GitHub-PAT prefixes as real secrets — the contiguous
+# literals never appear in source bytes.
+_STRIPE_FAKE = "sk_" + "live_FAKETESTKEY0000000000000"
+_GITHUB_FAKE = "ghp" + "_FAKETESTKEY0000000000000000000000000"
+
+
 SAFE_LINES = [
     "Hello, this is a test message.",
     "The URL is https://example.com/path",
@@ -14,8 +21,8 @@ SAFE_LINES = [
 
 CREDENTIAL_POSITIVES = [
     ("AKIA000000000000FAKE", "credential_aws_access_key"),
-    ("ghp" + "_FAKETESTKEY0000000000000000000000000", "credential_github_pat"),
-    ("sk_" + "live_FAKETESTKEY0000000000000", "credential_stripe_key"),
+    (_GITHUB_FAKE, "credential_github_pat"),
+    (_STRIPE_FAKE, "credential_stripe_key"),
     (
         "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.dozBMNPNtQ",
         "credential_jwt",
@@ -35,11 +42,11 @@ class TestCredentialScan:
         assert result == "credential_aws_access_key"
 
     def test_github_pat_detected(self) -> None:
-        result = scan("ghp" + "_FAKETESTKEY0000000000000000000000000")
+        result = scan(_GITHUB_FAKE)
         assert result == "credential_github_pat"
 
     def test_stripe_key_detected(self) -> None:
-        result = scan("sk_" + "live_FAKETESTKEY0000000000000")
+        result = scan(_STRIPE_FAKE)
         assert result == "credential_stripe_key"
 
     def test_jwt_detected(self) -> None:
