@@ -1,5 +1,7 @@
 # rag-nano
 
+> 中文版傻瓜指南：[`README_zh.md`](README_zh.md)
+
 Minimum closed-loop librarian for RAG-driven assistants. An external agent (chat agent, workflow agent, batch job) dispatches a query and gets back ranked, fully-attributed knowledge chunks over a stable HTTP contract.
 
 The librarian is **agent-neutral**: it owns retrieval + provenance only. Prompt construction, dialogue history, answer generation, short-term memory live elsewhere.
