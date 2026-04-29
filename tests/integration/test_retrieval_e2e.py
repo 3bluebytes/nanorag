@@ -1,8 +1,8 @@
 import pytest
 
 from rag_nano.components.embedding import MockEmbeddingProvider
-from rag_nano.components.retriever import CosineTopKRetriever
 from rag_nano.components.reranker import IdentityReranker
+from rag_nano.components.retriever import CosineTopKRetriever
 from rag_nano.core.retrieval import Components, retrieve
 from rag_nano.types import RetrievalFilters, RetrievalQuery
 

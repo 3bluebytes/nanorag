@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 
@@ -29,7 +29,7 @@ class TestSqliteStructuredStore:
             data_type=DataType.faq,
             category="ops",
             content_hash="abc123",
-            ingested_at=datetime.now(timezone.utc),
+            ingested_at=datetime.now(UTC),
             chunk_count=1,
         )
         store.insert_source(source)
@@ -44,7 +44,7 @@ class TestSqliteStructuredStore:
             data_type=DataType.faq,
             category="ops",
             content_hash="abc123",
-            ingested_at=datetime.now(timezone.utc),
+            ingested_at=datetime.now(UTC),
             chunk_count=1,
         )
         store.insert_source(source)
@@ -55,7 +55,7 @@ class TestSqliteStructuredStore:
             data_type=DataType.faq,
             category="ops",
             content_hash="abc123",
-            ingested_at=datetime.now(timezone.utc),
+            ingested_at=datetime.now(UTC),
             chunk_count=2,
         )
         store.insert_source(source2)
@@ -70,7 +70,7 @@ class TestSqliteStructuredStore:
             data_type=DataType.faq,
             category="ops",
             content_hash="abc123",
-            ingested_at=datetime.now(timezone.utc),
+            ingested_at=datetime.now(UTC),
             chunk_count=1,
         )
         chunk = KnowledgeChunk(
@@ -96,7 +96,7 @@ class TestSqliteStructuredStore:
             data_type=DataType.faq,
             category="ops",
             content_hash="abc123",
-            ingested_at=datetime.now(timezone.utc),
+            ingested_at=datetime.now(UTC),
             chunk_count=2,
         )
         chunks = [

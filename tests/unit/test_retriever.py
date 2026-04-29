@@ -1,7 +1,4 @@
-from datetime import datetime, timezone
-
-import numpy as np
-import pytest
+from datetime import UTC, datetime
 
 from rag_nano.components.embedding import MockEmbeddingProvider
 from rag_nano.components.retriever import CosineTopKRetriever
@@ -28,7 +25,7 @@ class TestCosineTopKRetriever:
             data_type=DataType.faq,
             category="embedding",
             content_hash="abc",
-            ingested_at=datetime.now(timezone.utc),
+            ingested_at=datetime.now(UTC),
             chunk_count=2,
         )
         chunks = [

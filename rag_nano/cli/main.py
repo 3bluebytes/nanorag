@@ -12,7 +12,7 @@ from rag_nano.components.embedding import get_embedding_provider
 from rag_nano.components.reranker import get_reranker
 from rag_nano.components.retriever import get_retriever
 from rag_nano.components.structured_store import get_structured_store
-from rag_nano.components.vector_store import get_vector_store
+from rag_nano.components.vector_store import load_vector_store
 from rag_nano.config import Settings
 from rag_nano.core.ingest import ingest as _ingest_core
 from rag_nano.core.retrieval import Components
@@ -20,6 +20,19 @@ from rag_nano.eval.runner import run_eval
 from rag_nano.types import DataType
 
 app = typer.Typer(help="rag-nano — minimum closed-loop librarian")
+
+
+@app.callback()
+def main(
+    log_level: str | None = typer.Option(
+        None, "--log-level", help="Override RAG_NANO_LOG_LEVEL for this invocation."
+    ),
+) -> None:
+    """rag-nano CLI: ingest, serve, eval, stats, wipe-index."""
+    if log_level:
+        import os
+
+        os.environ["RAG_NANO_LOG_LEVEL"] = log_level
 
 
 @app.command()
@@ -39,7 +52,7 @@ def ingest(
 ) -> None:
     settings = Settings.from_env()
     structured = get_structured_store(settings)
-    vector = get_vector_store(settings)
+    vector = load_vector_store(settings)
 
     # Expand directories to individual files
     expanded: list[Path] = []
@@ -103,9 +116,7 @@ def stats() -> None:
 
 @app.command()
 def eval(
-    cases: Path = typer.Option(
-        Path("eval/cases.yaml"), "--cases", help="Path to cases.yaml"
-    ),
+    cases: Path = typer.Option(Path("eval/cases.yaml"), "--cases", help="Path to cases.yaml"),
     history: Path = typer.Option(
         Path("eval/history.jsonl"), "--history", help="Path to history.jsonl"
     ),
@@ -116,7 +127,7 @@ def eval(
     settings = Settings.from_env()
     components = Components(
         embedding_provider=get_embedding_provider(settings),
-        vector_store=get_vector_store(settings),
+        vector_store=load_vector_store(settings),
         retriever=get_retriever(settings),
         reranker=get_reranker(settings),
         structured_store=get_structured_store(settings),
@@ -149,9 +160,12 @@ def eval(
         Path(out).parent.mkdir(parents=True, exist_ok=True)
         Path(out).write_text(record_json + "\n", encoding="utf-8")
 
-    if fail_on_regression and run.delta_vs_previous is not None:
-        if run.delta_vs_previous["recall_delta"] < 0:
-            raise typer.Exit(code=1)
+    if (
+        fail_on_regression
+        and run.delta_vs_previous is not None
+        and run.delta_vs_previous["recall_delta"] < 0
+    ):
+        raise typer.Exit(code=1)
 
 
 if __name__ == "__main__":

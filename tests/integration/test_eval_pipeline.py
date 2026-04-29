@@ -11,7 +11,6 @@ from rag_nano.config import Settings
 from rag_nano.core.retrieval import Components
 from rag_nano.eval.runner import run_eval
 
-
 SEED_CASES_YAML = Path("eval/cases.yaml")
 
 
@@ -140,9 +139,7 @@ class TestEvalPipeline:
                 "expected_substring": "passage",
             }
         )
-        cases_file.write_text(
-            yaml.safe_dump(existing, allow_unicode=True), encoding="utf-8"
-        )
+        cases_file.write_text(yaml.safe_dump(existing, allow_unicode=True), encoding="utf-8")
 
         second = run_eval(cases_file, history_file, components, settings, k=5)
         assert second.case_count == first_count + 1
@@ -160,9 +157,7 @@ class TestEvalPipeline:
         run = run_eval(cases_file, history_file, components, settings, k=5)
         assert run.case_count == 20
 
-        broken = next(
-            o for o in run.per_case_outcome if o["case_id"] == "code_summary-broken"
-        )
+        broken = next(o for o in run.per_case_outcome if o["case_id"] == "code_summary-broken")
         assert broken["hit"] is False
         assert broken["recall_at_k"] == 0.0
         assert broken["error"] is None  # not an exception — just a miss

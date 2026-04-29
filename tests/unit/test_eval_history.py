@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from rag_nano.eval.history import append, compare, previous_run
@@ -6,7 +6,7 @@ from rag_nano.types import EvaluationRun
 
 
 def _make_run(run_id: str, recall: float, hit: float) -> EvaluationRun:
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     return EvaluationRun(
         run_id=run_id,
         started_at=now,

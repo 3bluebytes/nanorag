@@ -29,8 +29,13 @@ class CosineTopKRetriever:
 
         chunk_id_filter: set[str] | None = None
         if query.filters.data_types or query.filters.categories:
+            data_type_vals = (
+                [dt.value if hasattr(dt, "value") else dt for dt in query.filters.data_types]
+                if query.filters.data_types
+                else None
+            )
             chunks = structured_store.query_chunks(
-                data_types=[dt.value for dt in query.filters.data_types] if query.filters.data_types else None,
+                data_types=data_type_vals,
                 categories=query.filters.categories if query.filters.categories else None,
             )
             chunk_id_filter = {c.chunk_id for c in chunks}

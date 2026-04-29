@@ -4,7 +4,7 @@ import hashlib
 import logging
 import re
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from rag_nano.types import DataType
 
@@ -33,7 +33,7 @@ def _looks_like_conversation(text: str) -> bool:
     return user_count >= 3
 
 
-def classify_data_type(item: "RawItem") -> DataType:
+def classify_data_type(item: RawItem) -> DataType:
     if item.original_metadata.get("data_type"):
         try:
             return DataType(item.original_metadata["data_type"])
@@ -57,7 +57,7 @@ def classify_data_type(item: "RawItem") -> DataType:
     return DataType.document
 
 
-def check_cold_data(item: "RawItem") -> str | None:
+def check_cold_data(item: RawItem) -> str | None:
     text = item.content
     if len(text) > MAX_RAW_CONVERSATION_SIZE and _looks_like_conversation(text):
         return "cold_data_oversized_conversation"
@@ -67,7 +67,7 @@ def check_cold_data(item: "RawItem") -> str | None:
     return None
 
 
-def check_duplicate(structured_store: Any, item: "RawItem") -> str | None:
+def check_duplicate(structured_store: Any, item: RawItem) -> str | None:
     content_hash = hashlib.sha256(item.content.encode()).hexdigest()
     existing = structured_store.get_source_by_path_and_hash(item.source_path, content_hash)
     if existing:
@@ -76,14 +76,11 @@ def check_duplicate(structured_store: Any, item: "RawItem") -> str | None:
 
 
 def evaluate(
-    item: "RawItem",
+    item: RawItem,
     structured_store: Any,
     override_data_type: DataType | None = None,
 ) -> tuple[DataType, str | None]:
-    if override_data_type:
-        data_type = override_data_type
-    else:
-        data_type = classify_data_type(item)
+    data_type = override_data_type or classify_data_type(item)
 
     cold = check_cold_data(item)
     if cold:

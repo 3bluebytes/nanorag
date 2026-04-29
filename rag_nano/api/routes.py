@@ -6,20 +6,37 @@ from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse
 
 from rag_nano.api.models import (
+    DebugBlock,
     ErrorResponse,
     HealthResponse,
     IndexStatsResponse,
+    RerankDetailItem,
+    ResultItem,
     RetrieveRequest,
     RetrieveResponse,
+    StatsBlock,
 )
 from rag_nano.core.retrieval import Components, retrieve
-from rag_nano.types import RetrievalFilters, RetrievalQuery
+from rag_nano.types import RetrievalFilters, RetrievalQuery, RetrievalResultRecord
 
 router = APIRouter()
 
 
 def _get_components(request: Request) -> Components:
     return request.app.state.components
+
+
+def _result_item(r: RetrievalResultRecord) -> ResultItem:
+    return ResultItem(
+        chunk_id=r.chunk_id,
+        source_id=r.source_id,
+        source_path=r.source_path,
+        score=r.score,
+        data_type=r.data_type.value,
+        category=r.category,
+        text=r.text,
+        original_metadata=r.original_metadata,
+    )
 
 
 @router.post("/v1/retrieve", response_model=RetrieveResponse)
@@ -37,61 +54,42 @@ async def post_retrieve(
         debug=body.debug,
     )
     response = retrieve(query, components)
+
+    debug_block: DebugBlock | None = None
+    if response.debug is not None:
+        debug_block = DebugBlock(
+            recall_candidates=[_result_item(r) for r in response.debug.recall_candidates],
+            rerank_detail=[
+                RerankDetailItem(
+                    chunk_id=d.chunk_id,
+                    pre_rank_score=d.pre_rank_score,
+                    post_rank_score=d.post_rank_score,
+                    rerank_explanation=d.rerank_explanation,
+                )
+                for d in response.debug.rerank_detail
+            ],
+        )
+
     return RetrieveResponse(
         query=response.query,
         k=response.k,
-        results=[
-            {
-                "chunk_id": r.chunk_id,
-                "source_id": r.source_id,
-                "source_path": r.source_path,
-                "score": r.score,
-                "data_type": r.data_type.value,
-                "category": r.category,
-                "text": r.text,
-                "original_metadata": r.original_metadata,
-            }
-            for r in response.results
-        ],
-        stats={
-            "total_candidates": response.stats.total_candidates,
-            "returned": response.stats.returned,
-            "elapsed_ms": response.stats.elapsed_ms,
-        },
-        debug={
-            "recall_candidates": [
-                {
-                    "chunk_id": r.chunk_id,
-                    "source_id": r.source_id,
-                    "source_path": r.source_path,
-                    "score": r.score,
-                    "data_type": r.data_type.value,
-                    "category": r.category,
-                    "text": r.text,
-                    "original_metadata": r.original_metadata,
-                }
-                for r in response.debug.recall_candidates
-            ],
-            "rerank_detail": [
-                {
-                    "chunk_id": d.chunk_id,
-                    "pre_rank_score": d.pre_rank_score,
-                    "post_rank_score": d.post_rank_score,
-                    "rerank_explanation": d.rerank_explanation,
-                }
-                for d in response.debug.rerank_detail
-            ],
-        } if response.debug else None,
+        results=[_result_item(r) for r in response.results],
+        stats=StatsBlock(
+            total_candidates=response.stats.total_candidates,
+            returned=response.stats.returned,
+            elapsed_ms=response.stats.elapsed_ms,
+        ),
+        debug=debug_block,
     )
 
 
 @router.get("/v1/health", response_model=HealthResponse)
 async def get_health(
+    request: Request,
     components: Components = Depends(_get_components),
-    request: Request = None,
 ) -> HealthResponse:
     index_loaded = components.structured_store.get_stats()["chunk_count"] > 0
-    settings = request.app.state.settings if request else None
+    settings = request.app.state.settings
     model = settings.embedding_model if settings else "unknown"
     if index_loaded:
         return HealthResponse(
@@ -109,11 +107,11 @@ async def get_health(
 
 @router.get("/v1/index/stats", response_model=IndexStatsResponse)
 async def get_index_stats(
+    request: Request,
     components: Components = Depends(_get_components),
-    request: Request = None,
 ) -> IndexStatsResponse:
     stats = components.structured_store.get_stats()
-    settings = request.app.state.settings if request else None
+    settings = request.app.state.settings
     model = settings.embedding_model if settings else "unknown"
     return IndexStatsResponse(
         chunk_count=stats.get("chunk_count", 0),

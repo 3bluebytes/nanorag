@@ -1,6 +1,5 @@
 import pytest
 
-from rag_nano.components.embedding import MockEmbeddingProvider
 from rag_nano.components.structured_store import InMemoryStructuredStore
 from rag_nano.components.vector_store import InMemoryVectorStore
 from rag_nano.config import Settings
@@ -14,12 +13,17 @@ class TestIngestPipeline:
 
     @pytest.fixture
     def settings(self):
-        return Settings(embedding_backend="mock", vector_store="in_memory", structured_store="in_memory")
+        return Settings(
+            embedding_backend="mock", vector_store="in_memory", structured_store="in_memory"
+        )
 
     def test_valid_items_become_retrievable(self, stores, settings) -> None:
         structured, vector = stores
-        paths = [p for p in (pytest.importorskip("pathlib").Path("tests/fixtures/seed_corpus")).iterdir()
-                  if p.suffix in (".md", ".py") and "credential" not in p.name and p.suffix != ".log"]
+        paths = [
+            p
+            for p in (pytest.importorskip("pathlib").Path("tests/fixtures/seed_corpus")).iterdir()
+            if p.suffix in (".md", ".py") and "credential" not in p.name and p.suffix != ".log"
+        ]
         if not paths:
             pytest.skip("No valid seed corpus files")
         report = ingest(paths, structured, vector, settings)

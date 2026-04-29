@@ -3,7 +3,6 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import dataclass
-from typing import Any
 
 from rag_nano.components.protocols import (
     EmbeddingProvider,
@@ -13,12 +12,12 @@ from rag_nano.components.protocols import (
     VectorStore,
 )
 from rag_nano.types import (
+    RerankDetailEntry,
     RetrievalDebugDetail,
     RetrievalQuery,
     RetrievalResponse,
     RetrievalResultRecord,
     RetrievalStats,
-    RerankDetailEntry,
 )
 
 logger = logging.getLogger(__name__)

@@ -41,6 +41,7 @@ dev = [
 [tool.ruff]
 line-length = 100
 target-version = "py311"
+extend-exclude = ["tests/fixtures"]
 
 [tool.ruff.lint]
 select = [
@@ -53,11 +54,15 @@ select = [
     "SIM", # simplify
 ]
 ignore = [
-    "E501", # line length handled by formatter
+    "E501",  # line length handled by formatter
+    "UP042", # StrEnum migration is behavior-changing for serialization; defer
 ]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**/*.py" = ["B"]
+# FastAPI Depends() / Typer Argument() / Typer Option() in argument defaults is the canonical idiom.
+"rag_nano/api/routes.py" = ["B008"]
+"rag_nano/cli/main.py" = ["B008"]
 
 [tool.pyright]
 include = ["rag_nano"]

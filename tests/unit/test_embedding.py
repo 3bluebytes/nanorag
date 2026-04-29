@@ -1,7 +1,6 @@
 from unittest.mock import MagicMock, patch
 
 import numpy as np
-import pytest
 
 from rag_nano.components.embedding import (
     LocalSentenceTransformerProvider,
@@ -11,13 +10,9 @@ from rag_nano.components.embedding import (
 
 class TestLocalSentenceTransformerProvider:
     def test_prefix_convention_query(self) -> None:
-        with patch(
-            "sentence_transformers.SentenceTransformer"
-        ) as mock_cls:
+        with patch("sentence_transformers.SentenceTransformer") as mock_cls:
             mock_model = MagicMock()
-            mock_model.encode.return_value = np.array(
-                [[1.0, 0.0, 0.0]], dtype=np.float32
-            )
+            mock_model.encode.return_value = np.array([[1.0, 0.0, 0.0]], dtype=np.float32)
             mock_cls.return_value = mock_model
 
             provider = LocalSentenceTransformerProvider("dummy-model")
@@ -28,13 +23,9 @@ class TestLocalSentenceTransformerProvider:
             assert "hello world" in passed_texts[0]
 
     def test_prefix_convention_passage(self) -> None:
-        with patch(
-            "sentence_transformers.SentenceTransformer"
-        ) as mock_cls:
+        with patch("sentence_transformers.SentenceTransformer") as mock_cls:
             mock_model = MagicMock()
-            mock_model.encode.return_value = np.array(
-                [[1.0, 0.0, 0.0]], dtype=np.float32
-            )
+            mock_model.encode.return_value = np.array([[1.0, 0.0, 0.0]], dtype=np.float32)
             mock_cls.return_value = mock_model
 
             provider = LocalSentenceTransformerProvider("dummy-model")

@@ -1,9 +1,6 @@
 import threading
 import time
 
-import pytest
-
-from rag_nano.components.embedding import MockEmbeddingProvider
 from rag_nano.components.structured_store import InMemoryStructuredStore
 from rag_nano.components.vector_store import InMemoryVectorStore
 from rag_nano.config import Settings
@@ -14,14 +11,21 @@ class TestConcurrentAccess:
     def test_retrieval_observes_consistent_state(self) -> None:
         structured = InMemoryStructuredStore()
         vector = InMemoryVectorStore()
-        settings = Settings(embedding_backend="mock", vector_store="in_memory", structured_store="in_memory")
+        settings = Settings(
+            embedding_backend="mock", vector_store="in_memory", structured_store="in_memory"
+        )
 
         seen_states = []
 
         def ingest_thread():
             from pathlib import Path
+
             corpus = Path("tests/fixtures/seed_corpus")
-            md_files = [f for f in corpus.iterdir() if f.suffix in (".md", ".py") and "credential" not in f.name]
+            md_files = [
+                f
+                for f in corpus.iterdir()
+                if f.suffix in (".md", ".py") and "credential" not in f.name
+            ]
             if not md_files:
                 return
             ingest(md_files, structured, vector, settings)

@@ -1,6 +1,5 @@
 from rag_nano.ingest.credential_scan import scan
 
-
 SAFE_LINES = [
     "Hello, this is a test message.",
     "The URL is https://example.com/path",
@@ -17,7 +16,10 @@ CREDENTIAL_POSITIVES = [
     ("AKIA000000000000FAKE", "credential_aws_access_key"),
     ("ghp" + "_FAKETESTKEY0000000000000000000000000", "credential_github_pat"),
     ("sk_" + "live_FAKETESTKEY0000000000000", "credential_stripe_key"),
-    ("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.dozBMNPNtQ", "credential_jwt"),
+    (
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.dozBMNPNtQ",
+        "credential_jwt",
+    ),
     ("api_key = AKIA000000000000FAKE", "credential_generic_assignment"),
 ]
 
@@ -41,7 +43,9 @@ class TestCredentialScan:
         assert result == "credential_stripe_key"
 
     def test_jwt_detected(self) -> None:
-        result = scan("Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.dozBMNPNtQtR")
+        result = scan(
+            "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.dozBMNPNtQtR"
+        )
         assert result == "credential_jwt"
 
     def test_generic_assignment_detected(self) -> None:

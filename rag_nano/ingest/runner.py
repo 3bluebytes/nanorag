@@ -2,20 +2,23 @@ from __future__ import annotations
 
 import hashlib
 import logging
-import shutil
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from rag_nano.components.embedding import get_embedding_provider
-from rag_nano.components.vector_store import get_vector_store
+from ulid import ULID
+
 from rag_nano.config import Settings
 from rag_nano.ingest.chunker import chunk
 from rag_nano.ingest.credential_scan import scan as credential_scan
-from rag_nano.ingest.value_gate import check_cold_data, check_duplicate, classify_data_type, evaluate
-from rag_nano.types import DataType, IngestRunReport, KnowledgeChunk, KnowledgeSource, RejectionReason
-from ulid import ULID
+from rag_nano.ingest.value_gate import (
+    evaluate,
+)
+from rag_nano.types import (
+    KnowledgeChunk,
+    KnowledgeSource,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +30,9 @@ class PipelineResult:
     rejected: str | None
 
 
-def run_pipeline(item: Any, structured_store: Any, settings: Settings, embedding_provider: Any, vector_store: Any) -> PipelineResult:
+def run_pipeline(
+    item: Any, structured_store: Any, settings: Settings, embedding_provider: Any, vector_store: Any
+) -> PipelineResult:
     source_id = str(ULID())
     path = item.source_path
     content = item.content
@@ -55,12 +60,9 @@ def run_pipeline(item: Any, structured_store: Any, settings: Settings, embedding
     category = original_metadata.get("category", "")
     if not category:
         p = Path(path)
-        if len(p.parts) >= 2:
-            category = p.parts[-2]
-        else:
-            category = p.stem
+        category = p.parts[-2] if len(p.parts) >= 2 else p.stem
 
-    ingested_at = datetime.now(timezone.utc)
+    ingested_at = datetime.now(UTC)
     source = KnowledgeSource(
         source_id=source_id,
         source_path=path,
@@ -77,7 +79,7 @@ def run_pipeline(item: Any, structured_store: Any, settings: Settings, embedding
 
     # Build chunk records with embedding indices
     chunks: list[KnowledgeChunk] = []
-    for pos, (text, emb) in enumerate(zip(text_chunks, embeddings)):
+    for pos, (text, emb) in enumerate(zip(text_chunks, embeddings, strict=False)):
         chunk_id = str(ULID())
         emb_idx = int(vector_store.count())
         chunks.append(
@@ -101,7 +103,9 @@ def commit_source(result: PipelineResult, structured_store: Any, settings: Setti
     if result.source is None:
         return
     # Check for existing source with same path (replace on content change)
-    existing = structured_store.get_source_by_path_and_hash(result.source.source_path, result.source.content_hash)
+    existing = structured_store.get_source_by_path_and_hash(
+        result.source.source_path, result.source.content_hash
+    )
     if existing:
         # Already handled in run_pipeline - should not reach here
         return

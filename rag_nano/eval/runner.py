@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 import subprocess
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import yaml
@@ -44,17 +44,13 @@ def load_cases(path: Path) -> list[EvaluationCase]:
     return cases
 
 
-def validate_composition(
-    cases: list[EvaluationCase], corpus_data_types: set[str]
-) -> None:
+def validate_composition(cases: list[EvaluationCase], corpus_data_types: set[str]) -> None:
     if len(cases) < 20:
         raise ValueError(f"Eval requires ≥20 cases; got {len(cases)}")
     case_data_types = {c.expected_data_type.value for c in cases}
     missing = corpus_data_types - case_data_types
     if missing:
-        raise ValueError(
-            f"Corpus contains data_types {sorted(missing)} with no matching eval case"
-        )
+        raise ValueError(f"Corpus contains data_types {sorted(missing)} with no matching eval case")
     langs = {c.query_lang for c in cases}
     if "zh" not in langs:
         raise ValueError("Eval requires ≥1 zh case")
@@ -100,9 +96,7 @@ def evaluate_case(case: EvaluationCase, components: Components, k: int) -> dict:
                 expected_rank = i
                 break
     elif case.mode == "substring":
-        substring_hit = any(
-            case.expected_substring in t for t in returned_texts[:k]
-        )
+        substring_hit = any(case.expected_substring in t for t in returned_texts[:k])
         recall = 1.0 if substring_hit else 0.0
         hit = substring_hit
         expected_rank = -1
@@ -137,7 +131,7 @@ def run_eval(
     settings: Settings,
     k: int = 5,
 ) -> EvaluationRun:
-    started_at = datetime.now(timezone.utc)
+    started_at = datetime.now(UTC)
     cases = load_cases(cases_path)
 
     corpus_stats = components.structured_store.get_stats()
@@ -156,7 +150,7 @@ def run_eval(
     case_count = len(cases)
     metric_recall = recall_total / case_count if case_count else 0.0
     metric_hit = hit_total / case_count if case_count else 0.0
-    finished_at = datetime.now(timezone.utc)
+    finished_at = datetime.now(UTC)
 
     prev = previous_run(history_path)
     run = EvaluationRun(

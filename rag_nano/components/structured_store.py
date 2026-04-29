@@ -126,7 +126,7 @@ class SqliteStructuredStore:
 
         rows = conn.execute(sql, params).fetchall()
         cols = [d[0] for d in conn.execute("SELECT * FROM knowledge_chunk").description]
-        return [_row_to_chunk(dict(zip(cols, r))) for r in rows]
+        return [_row_to_chunk(dict(zip(cols, r, strict=False))) for r in rows]
 
     def get_source(self, source_id: str) -> KnowledgeSource | None:
         conn = self._connect()
@@ -136,7 +136,7 @@ class SqliteStructuredStore:
         if row is None:
             return None
         cols = [d[0] for d in conn.execute("SELECT * FROM knowledge_source").description]
-        return _row_to_source(dict(zip(cols, row)))
+        return _row_to_source(dict(zip(cols, row, strict=False)))
 
     def get_source_by_path_and_hash(
         self, source_path: str, content_hash: str
@@ -149,7 +149,7 @@ class SqliteStructuredStore:
         if row is None:
             return None
         cols = [d[0] for d in conn.execute("SELECT * FROM knowledge_source").description]
-        return _row_to_source(dict(zip(cols, row)))
+        return _row_to_source(dict(zip(cols, row, strict=False)))
 
     def delete_source(self, source_id: str) -> None:
         conn = self._connect()
@@ -172,9 +172,7 @@ class SqliteStructuredStore:
             "SELECT data_type, COUNT(*) FROM knowledge_chunk GROUP BY data_type"
         ):
             by_data_type[row[0]] = row[1]
-        last_ingest = conn.execute(
-            "SELECT MAX(ingested_at) FROM knowledge_source"
-        ).fetchone()[0]
+        last_ingest = conn.execute("SELECT MAX(ingested_at) FROM knowledge_source").fetchone()[0]
         return {
             "chunk_count": chunk_count,
             "source_count": source_count,
@@ -224,9 +222,7 @@ class InMemoryStructuredStore:
 
     def delete_source(self, source_id: str) -> None:
         self._sources.pop(source_id, None)
-        self._chunks = {
-            cid: c for cid, c in self._chunks.items() if c.source_id != source_id
-        }
+        self._chunks = {cid: c for cid, c in self._chunks.items() if c.source_id != source_id}
 
     def wipe(self) -> None:
         self._sources.clear()
@@ -249,6 +245,7 @@ class InMemoryStructuredStore:
 
 def _row_to_source(row: dict[str, Any]) -> KnowledgeSource:
     from datetime import datetime
+
     from rag_nano.types import DataType
 
     return KnowledgeSource(

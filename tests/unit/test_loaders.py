@@ -1,7 +1,5 @@
 from pathlib import Path
 
-import pytest
-
 from rag_nano.ingest.loaders import load_file
 
 

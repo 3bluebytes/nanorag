@@ -146,5 +146,5 @@ class IngestRunReport:
     accepted: int = 0
     rejected: int = 0
     total_chunks: int = 0
-    per_item_reasons: list[tuple[str, RejectionReason | None]] = field(default_factory=list)
+    per_item_reasons: list[tuple[str, str | None]] = field(default_factory=list)
     by_data_type: dict[str, int] = field(default_factory=dict)

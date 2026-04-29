@@ -1,7 +1,6 @@
 import shutil
 
 import numpy as np
-import pytest
 
 from rag_nano.components.vector_store import NumpyFlatVectorStore
 
@@ -24,9 +23,7 @@ class TestNumpyFlatVectorStore:
 
     def test_cosine_top_k_correctness(self) -> None:
         store = NumpyFlatVectorStore()
-        embeddings = np.array(
-            [[1, 0, 0], [0.9, 0.1, 0], [0, 1, 0], [0, 0, 1]], dtype=np.float32
-        )
+        embeddings = np.array([[1, 0, 0], [0.9, 0.1, 0], [0, 1, 0], [0, 0, 1]], dtype=np.float32)
         embeddings = embeddings / np.linalg.norm(embeddings, axis=1, keepdims=True)
         store.add(["c1", "c2", "c3", "c4"], embeddings)
 
@@ -47,9 +44,7 @@ class TestNumpyFlatVectorStore:
 
     def test_chunk_id_filter(self) -> None:
         store = NumpyFlatVectorStore()
-        embeddings = np.array(
-            [[1, 0, 0], [0.9, 0.1, 0], [0, 1, 0]], dtype=np.float32
-        )
+        embeddings = np.array([[1, 0, 0], [0.9, 0.1, 0], [0, 1, 0]], dtype=np.float32)
         embeddings = embeddings / np.linalg.norm(embeddings, axis=1, keepdims=True)
         store.add(["c1", "c2", "c3"], embeddings)
 

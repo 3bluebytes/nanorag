@@ -1,15 +1,18 @@
 from __future__ import annotations
 
 import hashlib
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-import numpy as np
 import pytest
 
+if TYPE_CHECKING:
+    from fastapi import FastAPI
+
 from rag_nano.components.embedding import MockEmbeddingProvider
-from rag_nano.components.retriever import CosineTopKRetriever
 from rag_nano.components.reranker import IdentityReranker
+from rag_nano.components.retriever import CosineTopKRetriever
 from rag_nano.components.structured_store import InMemoryStructuredStore
 from rag_nano.components.vector_store import InMemoryVectorStore
 from rag_nano.config import Settings
@@ -36,7 +39,9 @@ def mock_settings(tmp_index_dir: Path) -> Settings:
 
 
 @pytest.fixture
-def seed_index_fixture(mock_settings: Settings) -> tuple[InMemoryStructuredStore, InMemoryVectorStore]:
+def seed_index_fixture(
+    mock_settings: Settings,
+) -> tuple[InMemoryStructuredStore, InMemoryVectorStore]:
     """Direct-write seed fixture bypassing the ingest pipeline.
 
     Returns (structured_store, vector_store) pre-populated with a small
@@ -47,11 +52,31 @@ def seed_index_fixture(mock_settings: Settings) -> tuple[InMemoryStructuredStore
     embed = MockEmbeddingProvider(dim=4)
 
     corpus = [
-        ("faq/embedding.md", DataType.faq, "embedding", ["BGE-m3 prefix config", "E5 model options"]),
+        (
+            "faq/embedding.md",
+            DataType.faq,
+            "embedding",
+            ["BGE-m3 prefix config", "E5 model options"],
+        ),
         ("faq/deploy.md", DataType.faq, "ops", ["hotfix branch strategy", "smoke test checklist"]),
-        ("sop/incident.md", DataType.sop, "ops", ["incident response step 1", "incident response step 2"]),
-        ("wiki/arch.md", DataType.wiki, "system", ["librarian decoupled design", "HTTP contract stable"]),
-        ("code/chunker.py", DataType.code_summary, "ingest", ["markdown chunker util", "char chunker util"]),
+        (
+            "sop/incident.md",
+            DataType.sop,
+            "ops",
+            ["incident response step 1", "incident response step 2"],
+        ),
+        (
+            "wiki/arch.md",
+            DataType.wiki,
+            "system",
+            ["librarian decoupled design", "HTTP contract stable"],
+        ),
+        (
+            "code/chunker.py",
+            DataType.code_summary,
+            "ingest",
+            ["markdown chunker util", "char chunker util"],
+        ),
     ]
 
     emb_idx = 0
@@ -64,7 +89,7 @@ def seed_index_fixture(mock_settings: Settings) -> tuple[InMemoryStructuredStore
             data_type=dtype,
             category=category,
             content_hash=hashlib.sha256(content.encode()).hexdigest(),
-            ingested_at=datetime.now(timezone.utc),
+            ingested_at=datetime.now(UTC),
             chunk_count=len(chunk_texts),
         )
         structured.insert_source(source)
@@ -100,9 +125,8 @@ def _ulid_from_text(text: str) -> str:
 
 
 @pytest.fixture
-def app_fixture(mock_settings: Settings, seed_index_fixture) -> "FastAPI":
+def app_fixture(mock_settings: Settings, seed_index_fixture) -> FastAPI:
     """FastAPI app wired with seeded in-memory stores."""
-    from fastapi import FastAPI
 
     from rag_nano.api.app import create_app
 
@@ -119,7 +143,7 @@ def app_fixture(mock_settings: Settings, seed_index_fixture) -> "FastAPI":
 
 
 @pytest.fixture
-def app_empty_fixture(mock_settings: Settings) -> "FastAPI":
+def app_empty_fixture(mock_settings: Settings) -> FastAPI:
     """FastAPI app with empty stores."""
     from rag_nano.api.app import create_app
 
@@ -127,7 +151,9 @@ def app_empty_fixture(mock_settings: Settings) -> "FastAPI":
 
 
 @pytest.fixture
-def seed_index_via_ingest_fixture(mock_settings: Settings) -> tuple[InMemoryStructuredStore, InMemoryVectorStore]:
+def seed_index_via_ingest_fixture(
+    mock_settings: Settings,
+) -> tuple[InMemoryStructuredStore, InMemoryVectorStore]:
     """Seed fixture using the real ingest pipeline on the seed corpus.
 
     Returns (structured_store, vector_store) populated via rag_nano.core.ingest.ingest().

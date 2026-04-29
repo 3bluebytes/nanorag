@@ -1,3 +1,5 @@
+from datetime import UTC
+
 import pytest
 from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
@@ -87,11 +89,11 @@ class TestRetrieveEndpoint:
         assert data["api_version"] == "1"
 
     async def test_fr005_drops_untraceable_result(self, app_empty_fixture: FastAPI) -> None:
-        from datetime import datetime, timezone
+        from datetime import datetime
 
         from rag_nano.components.embedding import MockEmbeddingProvider
-        from rag_nano.components.retriever import CosineTopKRetriever
         from rag_nano.components.reranker import IdentityReranker
+        from rag_nano.components.retriever import CosineTopKRetriever
         from rag_nano.components.structured_store import InMemoryStructuredStore
         from rag_nano.components.vector_store import InMemoryVectorStore
         from rag_nano.core.retrieval import Components
@@ -107,7 +109,7 @@ class TestRetrieveEndpoint:
             data_type=DataType.faq,
             category="x",
             content_hash="bad",
-            ingested_at=datetime.now(timezone.utc),
+            ingested_at=datetime.now(UTC),
             chunk_count=1,
         )
         chunk = KnowledgeChunk(

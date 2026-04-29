@@ -154,12 +154,12 @@ Single Python project; package at repo root (`rag_nano/`); tests at `tests/`; ev
 
 **Purpose**: Constitution VIII proof points, end-to-end smoke validation, lint/type pass, README polish.
 
-- [ ] T061 [P] `tests/integration/test_agent_integration_chat.py` — drives Example A from quickstart.md against a live in-process app: a simulated chat agent posts a question, gets results, formats them with citations, and asserts the formatted answer carries source paths. **Constitution VIII proof point #1.**
-- [ ] T062 [P] `tests/integration/test_agent_integration_workflow.py` — drives Example B from quickstart.md: a simulated workflow agent processes a JSONL of issues, looks up SOP+FAQ chunks via the retrieval API with `data_types` filter, asserts each output line has a populated `librarian_top_k` block. **Constitution VIII proof point #2.**
-- [ ] T063 Wire the top-level Typer app in `rag_nano/cli/main.py` (`app = typer.Typer()`; `@app.callback()` for global options; register subcommands `ingest`, `serve`, `eval`, `wipe-index`, `stats`) and the `[project.scripts] rag-nano = "rag_nano.cli.main:app"` entry point in `pyproject.toml`. Verify `uv run rag-nano --help` lists all five subcommands.
-- [ ] T064 [P] Run `ruff check rag_nano tests` and `ruff format --check rag_nano tests` — fix any findings. Run `pyright rag_nano` — fix any type errors. **Acceptance**: zero lint warnings, zero pyright errors.
-- [ ] T065 Execute the entire "what v1 done looks like" smoke script from `quickstart.md` end-to-end on a fresh checkout. Re-run the same script a second time and confirm the eval metric reproduces within the documented tolerance — proves **SC-007 (reproducibility)**. Capture any deviations as new tasks.
-- [ ] T066 Final README.md pass — confirm it points to `specs/001-minimal-rag-loop/quickstart.md` and contains nothing that would rot when the spec evolves.
+- [X] T061 [P] `tests/integration/test_agent_integration_chat.py` — drives Example A from quickstart.md against a live in-process app: a simulated chat agent posts a question, gets results, formats them with citations, and asserts the formatted answer carries source paths. **Constitution VIII proof point #1.**
+- [X] T062 [P] `tests/integration/test_agent_integration_workflow.py` — drives Example B from quickstart.md: a simulated workflow agent processes a JSONL of issues, looks up SOP+FAQ chunks via the retrieval API with `data_types` filter, asserts each output line has a populated `librarian_top_k` block. **Constitution VIII proof point #2.**
+- [X] T063 Wire the top-level Typer app in `rag_nano/cli/main.py` (`app = typer.Typer()`; `@app.callback()` for global options; register subcommands `ingest`, `serve`, `eval`, `wipe-index`, `stats`) and the `[project.scripts] rag-nano = "rag_nano.cli.main:app"` entry point in `pyproject.toml`. Verify `uv run rag-nano --help` lists all five subcommands.
+- [X] T064 [P] Run `ruff check rag_nano tests` and `ruff format --check rag_nano tests` — fix any findings. Run `pyright rag_nano` — fix any type errors. **Acceptance**: zero lint warnings, zero pyright errors.
+- [X] T065 Execute the entire "what v1 done looks like" smoke script from `quickstart.md` end-to-end on a fresh checkout. Re-run the same script a second time and confirm the eval metric reproduces within the documented tolerance — proves **SC-007 (reproducibility)**. Capture any deviations as new tasks.
+- [X] T066 Final README.md pass — confirm it points to `specs/001-minimal-rag-loop/quickstart.md` and contains nothing that would rot when the spec evolves.
 
 ---
 

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import json
 import logging
-import shutil
 from pathlib import Path
 from typing import Any
 
@@ -92,3 +91,12 @@ def get_vector_store(settings: Settings) -> Any:
     if settings.vector_store == "in_memory":
         return InMemoryVectorStore()
     raise ValueError(f"Unknown vector store: {settings.vector_store}")
+
+
+def load_vector_store(settings: Settings) -> Any:
+    """Get a vector store and warm-load any persisted state from index_dir/vectors."""
+    store = get_vector_store(settings)
+    vectors_path = settings.index_dir / "vectors"
+    if vectors_path.exists():
+        store.load(vectors_path)
+    return store
