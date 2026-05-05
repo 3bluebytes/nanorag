@@ -19,7 +19,7 @@ COLD_DATA_PATTERNS = [
     (re.compile(r"^\d{4}-\d{2}-\d{2}[T\s].*(?:INFO|WARN|ERROR|DEBUG)", re.M), "cold_data_raw_log"),
     (re.compile(r"^\d{4}-\d{2}-\d{2}.*\d{2}:\d{2}:\d{2}", re.M), "cold_data_raw_log"),
     (re.compile(r"(?:stack\s*trace|exception\s*in|at\s+\w+\.\w+\()", re.I), "cold_data_raw_trace"),
-    (re.compile(r"^\s*\{.*\}\s*$", re.M), "cold_data_raw_dump"),
+    (re.compile(r"^\s*\{.*['\"][^'\"]*['\"]\s*:.*\}\s*$", re.M), "cold_data_raw_dump"),
 ]
 
 

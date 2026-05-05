@@ -49,6 +49,26 @@ class TestCheckColdData:
         )
         assert check_cold_data(item) is None
 
+    def test_latex_formula_not_flagged_as_dump(self) -> None:
+        item = RawItem(
+            source_path="bm25.md",
+            content=(
+                "## BM25\n\n$$\nBM25(q,d) = \\sum_{t} IDF(t) \\cdot\n"
+                "\\frac{TF(t,d) \\cdot (k+1)}\n"
+                "{TF(t,d) + k \\cdot (1 - b + b \\cdot |d|/avgdl)}\n$$\n"
+            ),
+            original_metadata={},
+        )
+        assert check_cold_data(item) is None
+
+    def test_json_dump_still_rejected(self) -> None:
+        item = RawItem(
+            source_path="dump.md",
+            content='{"event": "login", "user": "alice", "ts": 1700000000}',
+            original_metadata={},
+        )
+        assert check_cold_data(item) == "cold_data_raw_dump"
+
 
 class TestValueGate:
     def test_all_data_types_accepted(self) -> None:
